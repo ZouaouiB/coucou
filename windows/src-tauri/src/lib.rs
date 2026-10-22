@@ -33,6 +33,7 @@ mod shortcuts;
 mod sounds;
 mod speech;
 mod spotify;
+mod t24_hub_motion;
 mod tray;
 mod update;
 mod voice;
@@ -706,7 +707,7 @@ fn create_settings_window(app: &AppHandle) {
                 // Closing it must only hide it, or it could never be reopened.
                 tauri::WindowEvent::CloseRequested { api, .. } => {
                     api.prevent_close();
-                    let _ = this.hide();
+                    t24_hub_motion::close(&this);
                     set_hub_shown(&this, false);
                 }
                 // Minimised (a 0×0 resize on Windows) or back from it.
@@ -753,9 +754,7 @@ pub fn show_hub(app: &AppHandle, page: Option<&str>) {
     if let Some(page) = page {
         let _ = win.emit("hub-page", page.to_string());
     }
-    let _ = win.unminimize();
-    let _ = win.show();
-    let _ = win.set_focus();
+    t24_hub_motion::open(&win);
     set_hub_shown(&win, true);
 }
 
