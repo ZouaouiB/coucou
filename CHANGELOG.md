@@ -1,5 +1,31 @@
 # Changelog
 
+## Android 0.3.0 — October 22, 2026
+
+- **Coucou for Android 0.3.0**, by @Rhytam23 — a bigger release (versionCode 3). It works with Coucou 0.5.0 or later on Windows and Linux; the weekly recap needs Coucou 0.5.2 on Windows or Linux.
+  - **Clearer link** — Home names the likely cause when the computer is out of reach (computer closed, other network, phone link off); predictive back; the ongoing notification is updated only when its text changes.
+  - **Permission requests** — choose the vibration (default, short, off) and whether a request wakes the screen (off by default). Allow still needs your fingerprint or screen lock, and approvals are never muted or hidden.
+  - **Look** — a light theme (System, Light, Dark) and the phone's own colours on Android 12 and later; Reduce motion, TalkBack in words, large text and 48 dp touch targets.
+  - **Nine more languages** — French, Spanish, Brazilian Portuguese, Simplified Chinese, Hindi, Bengali, Russian, Indonesian and Arabic (right to left), with a language picker.
+  - **Quick actions** — launcher shortcuts (Chat, Recent decisions, Pair again), a Team widget, and Share to Coucou (the text lands in the chat box and is never sent).
+  - **Weekly recap and history** — last week's counts on Home (optional, off by default, behind its own switch on the computer), search and export of recent decisions as text, and a per-agent mute for finished, failed and limit notices (requests and questions are never muted).
+  - Fixes #629: the *Away from home Wi-Fi* section only shows when the pairing carries a relay (#682 by @Rhytam23)
+
+## 0.5.3 — October 22, 2026
+
+Mochi tells you a new version waits, and after the update he shows you what it brings.
+
+- **Mochi turns blue when a new version waits** *(macOS, GitHub build)* — once you agreed to look for updates, a newer Coucou turns Mochi blue with a little up arrow whenever he has nothing else to tell you, in the notch and in the menu bar, and opening the notch shows **Update now** first (it is also the first line of the menu). Later hides it for a day. Approvals and questions always come first
+- **What's new, after the update** — once Coucou updated itself, the notch shows what the new version brings (with an icon each, in your language), then *Your Coucou so far*: agent sessions, time with your agents, lines written, approvals from the notch, words dictated and time saved with Flow, calls transcribed. All of it is counted on your Mac and never leaves it
+- **Buy Mochi a coffee** — Coucou stays free and open source; if it saves you time, the last step of What's new has a coffee for Mochi (Stripe, the same page as Coucou's website)
+
+## Windows and Linux 0.5.2 — October 22, 2026
+
+- **Mochi turns blue when a new version waits** — once you agreed to look for updates, a newer version turns Mochi blue with a little up arrow, in the island and in the tray, and opening the island shows **Update now** first. Later hides it for a day. Approvals and questions always come first
+- **What's new, after the update** — the island shows once what the new version brings, then *Your Coucou so far* (counted on your computer, never sent) and **Buy Mochi a coffee**
+- **GitLab and Gitea** — two new pills like GitHub's: open merge and pull requests, reviews asked of you, the default branch's CI and your activity, for gitlab.com or your own instance; tokens stay in the system's credential store (#831 by @Andrey89711, from #591 and #585)
+- **Weekly recap on Coucou for Android** — Settings → Android phone → *Show my weekly recap on the phone*: last week's counts only, off by default (#682 by @Rhytam23)
+
 ## 0.5.2 — October 20, 2026
 
 New versions now come to you: Mochi says it in the notch and one click installs it. Plus four new languages and a round of community work.
