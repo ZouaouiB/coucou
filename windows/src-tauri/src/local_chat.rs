@@ -93,6 +93,7 @@ pub fn server(settings: &Settings, id: &str) -> Option<Server> {
     let (id, name, url, key) = match id {
         "ollama" => ("ollama", "Ollama", &settings.ollama_url, None),
         "lmstudio" => ("lmstudio", "LM Studio", &settings.lmstudio_url, None),
+        crate::omniroute::PROVIDER => return Some(crate::omniroute::server(settings)),
         "custom" => {
             let key = net::normalise_server_url(&settings.custom_url).ok().and_then(|u| custom_key_for(&u));
             ("custom", crate::i18n::n_("OpenAI-compatible server"), &settings.custom_url, key)
