@@ -40,6 +40,7 @@ mod update;
 mod voice;
 #[cfg(windows)]
 mod webview_drop;
+mod whatsapp;
 
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -132,6 +133,7 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) {
     }
     integrations::settings_saved(&app, &settings.active_integrations);
     spotify::sync(&app, &settings.active_integrations);
+    whatsapp::sync(&settings.active_integrations);
     if shortcuts_changed {
         shortcuts::apply(&app, &settings.shortcuts);
     }
@@ -911,6 +913,17 @@ pub fn run() {
             spotify::spotify_control,
             spotify::spotify_open,
             spotify::spotify_installed,
+            whatsapp::whatsapp_island,
+            whatsapp::whatsapp_open,
+            whatsapp::whatsapp_close,
+            whatsapp::whatsapp_send,
+            whatsapp::whatsapp_ignore,
+            whatsapp::whatsapp_unignore,
+            whatsapp::whatsapp_settings,
+            whatsapp::whatsapp_set_options,
+            whatsapp::whatsapp_save_gateway,
+            whatsapp::whatsapp_test,
+            whatsapp::whatsapp_install,
             flow::flow_status,
             flow::flow_set_prefs,
             flow::flow_history,
@@ -997,6 +1010,8 @@ pub fn run() {
             phone_link::start_if_enabled(&handle);
             integrations::start(handle.clone());
             spotify::sync(&handle, &loaded.active_integrations);
+            // WhatsApp (experimental): nothing runs unless it is turned on and its pill is active.
+            whatsapp::start(&handle, &loaded.active_integrations);
             shortcuts::apply(&handle, &loaded.shortcuts);
             // New versions: nothing goes to GitHub until the user agrees (update.rs).
             update::start(handle.clone());
@@ -1018,6 +1033,8 @@ pub fn run() {
             if let tauri::RunEvent::Exit = event {
                 phone_link::stop_on_exit(app);
                 notes::shutdown(app);
+                // GOWA started by Coucou stops with it; the conversations were only in memory.
+                whatsapp::shutdown();
             }
         });
 }

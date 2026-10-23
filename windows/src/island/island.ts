@@ -92,6 +92,8 @@ export class Island {
   private collapsed = false;
   private collapseTimer: number | null = null;
   private wasInIsland = false;
+  /** A reply is being typed in a card (WhatsApp): the island stays open. */
+  private holdingOpen = false;
   /** Last shape handed to Rust for the click-through test. */
   private pushedRect = { x: -1, y: -1, w: -1, h: -1 };
 
@@ -193,6 +195,8 @@ export class Island {
           integration_stripe: "https://dashboard.stripe.com/payments",
           integration_notion: "https://notion.so",
           integration_calcom: "https://app.cal.com/bookings",
+          // No WhatsApp app to bring forward here as on the Mac: WhatsApp Web, in the browser.
+          integration_whatsapp: "https://web.whatsapp.com",
         };
         if (task.id === CLAUDE_DESKTOP_ID) void Bridge.openClaudeDesktop();
         else if (task.id === "integration_claude" || task.sessionId) {
@@ -258,6 +262,22 @@ export class Island {
       previewOutfit: (outfit) => {
         State.wardrobePreview = outfit;
         State.notify();
+      },
+      keyboard: (on) => {
+        // The chat view manages the keyboard on its own.
+        if (on) void Bridge.focusWindow(true);
+        else if (State.view !== "prompt" && State.mode === "expanded") void Bridge.focusWindow(false);
+      },
+      holdOpen: (on) => {
+        if (this.holdingOpen === on) return;
+        this.holdingOpen = on;
+        if (on) {
+          this.fsm.pinned = true;
+          this.fsm.cancelTimers();
+        } else {
+          this.fsm.pinned = State.isPinned || State.pendingApproval != null;
+          if (!this.fsm.pinned && !this.wasInIsland && this.fsm.state === "home") this.fsm.mouseLeft();
+        }
       },
     };
 
