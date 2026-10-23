@@ -1385,7 +1385,7 @@ async function render() {
     shortcuts: () => [shortcutsSection(shortcutReport)],
   };
   root.append(...(sections[notchPage]?.() ?? []));
-  if (notchPage === "chat") root.append(omnirouteSection({ settings: () => settings, save, toggle }));
+  if (notchPage === "chat") root.append(omnirouteSection({ settings: () => settings, save, toggle, keyStore: KEY_STORE }));
   if (notchPage === "general") {
     root.append(h("div", {
       class: "hint",

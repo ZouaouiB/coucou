@@ -3,7 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { featuresModel, omnirouteConfig, stage } from "../src/core/omniroute.ts";
+import { chatAfterOff, featuresModel, omnirouteConfig, stage } from "../src/core/omniroute.ts";
 import { visibleProviders } from "../src/core/providers.ts";
 import { DEFAULT_SETTINGS } from "../src/core/state.ts";
 
@@ -47,4 +47,12 @@ test("the chat's picker shows it while it is on, or while the chat still goes to
   // An older settings.json has no omniroute at all.
   const { omniroute: _, ...older } = DEFAULT_SETTINGS;
   assert.ok(!visibleProviders(older).map((p) => p.id).includes("omniroute"));
+});
+
+test("turned off, the chat goes back to the provider it had before", () => {
+  assert.equal(chatAfterOff("omniroute", { ...on, chatBefore: "openrouter" }), "openrouter");
+  // Never taken by the card (picked in the island): Claude, as before.
+  assert.equal(chatAfterOff("omniroute", on), "anthropic");
+  // Moved elsewhere meanwhile: left there.
+  assert.equal(chatAfterOff("ollama", { ...on, chatBefore: "openrouter" }), "ollama");
 });

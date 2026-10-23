@@ -843,7 +843,7 @@ pub fn run() {
             chat_models,
             local_connect,
             local_set_key,
-            omniroute::omniroute_status, omniroute::omniroute_start, omniroute::omniroute_set_key, omniroute::omniroute_dashboard,
+            omniroute::omniroute_status, omniroute::omniroute_start, omniroute::omniroute_set_key, omniroute::omniroute_key_saved, omniroute::omniroute_dashboard,
             chat_reset,
             ingest_file,
             secret_present,

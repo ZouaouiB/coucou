@@ -54,6 +54,10 @@ pub struct Config {
     pub features: bool,
     /// The model those features ask for; empty until picked.
     pub features_model: String,
+    /// The chat's provider before OmniRoute took it: given back when it is
+    /// turned off. Empty when the chat never went to it.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub chat_before: String,
 }
 
 static APP: OnceLock<AppHandle> = OnceLock::new();
@@ -369,12 +373,31 @@ fn default_node() -> Option<PathBuf> {
     node.is_file().then_some(node)
 }
 
+/// Held while Coucou starts it: whoever asks meanwhile (launch, Settings, the
+/// chat) waits for that start instead of launching a second one.
+static STARTING: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+/// Before the chat or its picker asks OmniRoute: if it is on this computer and
+/// not answering — still starting after the computer started, or stopped since —
+/// waits for it, starting it if no one is. The picker shows "Loading…" meanwhile.
+pub async fn wake(server: &Server) -> Result<(), String> {
+    if server.id != PROVIDER {
+        return Ok(());
+    }
+    let Ok(url) = net::normalise_server_url(&server.url) else { return Ok(()) };
+    if !net::is_loopback_url(&url) || running(&url).await || launcher().is_none() {
+        return Ok(());
+    }
+    start_at(&url).await
+}
+
 /// Starts it in the background, as `omniroute serve --daemon` does, on the
 /// port of its address; returns once it answers.
 async fn start_at(url: &Url) -> Result<(), String> {
     if !net::is_loopback_url(url) {
         return Err(t("This OmniRoute runs on another computer: start it there."));
     }
+    let _starting = STARTING.lock().await;
     if running(url).await {
         return Ok(());
     }
@@ -432,6 +455,13 @@ pub async fn omniroute_start(shared: State<'_, Shared>) -> Result<Status, String
 #[tauri::command]
 pub fn omniroute_set_key(url: String, key: String) -> Result<(), String> {
     set_key(&url, &key)
+}
+
+/// Whether a key is saved for the address in use — what the key row shows,
+/// at once, without asking OmniRoute anything.
+#[tauri::command]
+pub fn omniroute_key_saved(shared: State<'_, Shared>) -> bool {
+    base(&current(&shared)).ok().and_then(|url| key_for(&url)).is_some()
 }
 
 /// Its dashboard, where its providers, combos and keys are managed.
@@ -540,7 +570,10 @@ mod tests {
                 start_at(&url).await.expect("started");
                 println!("started in {:.1}s", started.elapsed().as_secs_f32());
             }
-            match list_models(&url, key.as_deref()).await {
+            let listed = std::time::Instant::now();
+            let models = list_models(&url, key.as_deref()).await;
+            println!("listed in {:.2}s", listed.elapsed().as_secs_f32());
+            match models {
                 Ok(models) => println!("models: {} (first: {:?})", models.len(), models.first()),
                 Err(Listing::Refused) => println!("models: refused ({})", if key.is_some() { "key refused" } else { "asks for a key" }),
                 Err(Listing::Failed(err)) => println!("models: failed: {err}"),
@@ -583,6 +616,14 @@ mod tests {
                 Err(err) => println!("chat failed: {err}"),
             }
         });
+    }
+
+    #[test]
+    fn waking_leaves_other_servers_and_remote_routers_alone() {
+        let server = |id, url: &str| Server { id, name: NAME, url: url.into(), key: None };
+        assert!(block_on(wake(&server("ollama", "http://127.0.0.1:1"))).is_ok());
+        assert!(block_on(wake(&server(PROVIDER, "https://router.example.com"))).is_ok());
+        assert!(block_on(wake(&server(PROVIDER, ""))).is_ok());
     }
 
     #[test]

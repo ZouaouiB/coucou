@@ -65,10 +65,10 @@ OmniRoute (https://omniroute.online, `npm install -g omniroute`) as a chat provi
 
 | Upstream file | Hook |
 |---|---|
-| `src-tauri/src/lib.rs` | `mod omniroute;` · `omniroute::setup(&handle);` in `.setup` · the four `omniroute::omniroute_*` commands in `generate_handler!` |
+| `src-tauri/src/lib.rs` | `mod omniroute;` · `omniroute::setup(&handle);` in `.setup` · the five `omniroute::omniroute_*` commands in `generate_handler!` |
 | `src-tauri/src/settings.rs` | `pub omniroute: crate::omniroute::Config` + its default; `"omniroute"` in the test fixture and key list |
 | `src-tauri/src/secrets.rs` | `"omniroute-api-key"` in `KNOWN_KEYS` |
-| `src-tauri/src/local_chat.rs` | `crate::omniroute::PROVIDER => return Some(crate::omniroute::server(settings)),` in `server()` |
+| `src-tauri/src/local_chat.rs` | `crate::omniroute::PROVIDER => return Some(crate::omniroute::server(settings)),` in `server()` · `crate::omniroute::wake(server).await?;` after `base_url(server)?` in `models()` and `send_with()` (waits for, or starts, an OmniRoute that is not answering yet) |
 | `src-tauri/src/claude.rs` | first line of `complete()` and of `voice_turn()`: `if let Some(routed) = crate::omniroute::….await { return routed; }` |
 | `src-tauri/src/flow/cleanup.rs`, `voice/mod.rs` | `\|\| crate::omniroute::serves_features()` next to the Anthropic key check |
 | `src/core/state.ts` | `omniroute: OmniRouteConfig` + its default + type import |
@@ -89,5 +89,7 @@ Live test against the OmniRoute on this computer (uses the key saved in Coucou, 
 `windows/src/t24/screenHop.ts`. Hook: `main.ts` (import + the `screen-changed` handler wrapped in `hopScreens(...)`).
 
 ### Upstream candidates (bug fixes, not fork features)
+
+A refused Anthropic key (401) said only "Claude API 401 Unauthorized: invalid x-api-key": `claude.rs` `status_error()` now says "Claude rejected the API key (401). Check it in Settings.", as the other providers do (existing string, already translated).
 
 Mochi cut off after a monitor change (canvas bitmaps not following the pixel ratio): `island/island.ts`, `desktop/main.ts`, `mochi/minibots.ts`, `views/wardrobe.ts`, and the self-re-arming ratio watcher in `main.ts`. Worth a PR to Louis-CFM/coucou so the fork stops carrying them.
