@@ -108,7 +108,7 @@ async function main() {
 
   await onEvent<null>("screen-changed", () => void hopScreens(async () => {
     await checkZoom();
-    await Bridge.reposition();
+    void Bridge.reposition();
     island.ensureRunning();
   }, () => State.mode !== "hidden"));
 
