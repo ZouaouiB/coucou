@@ -20,7 +20,10 @@ const LEAVE_SHIFT = 10;
 const EASE_OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
 const EASE_IN = "cubic-bezier(0.4, 0, 1, 1)";
 
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const reducedMotion =
+  typeof matchMedia === "function"
+    ? matchMedia("(prefers-reduced-motion: reduce)")
+    : { matches: false };
 
 let entering: Animation | null = null;
 let leaving: HTMLElement | null = null;
@@ -46,7 +49,7 @@ export function swapPage(scroll: HTMLElement, next: HTMLElement, direction: numb
   clear(scroll);
   scroll.append(next);
   scroll.scrollTop = 0;
-  if (still) return;
+  if (still || typeof next.animate !== "function") return;
   // No fill once finished: a transform left on the page would become the
   // containing block of the fixed popups inside it.
   entering = next.animate(
@@ -60,6 +63,7 @@ export function swapPage(scroll: HTMLElement, next: HTMLElement, direction: numb
 
 /** Lays the old page over the panel, scrolled as it was, and fades it out. */
 function leave(scroll: HTMLElement, old: HTMLElement, direction: number) {
+  if (typeof scroll.getBoundingClientRect !== "function" || typeof old.animate !== "function") return;
   const box = scroll.getBoundingClientRect();
   const top = scroll.scrollTop;
   const layer = document.createElement("div");

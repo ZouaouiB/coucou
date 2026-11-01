@@ -259,6 +259,11 @@ fn status_error(status: u16, raw: &str) -> String {
 }
 
 /// The models on the user's Anthropic account, newest first, as the API lists them.
+pub async fn available_models() -> Result<Vec<ModelInfo>, String> {
+    let key = secrets::get(KEY).ok_or_else(|| t("No API key — add it in Settings."))?;
+    models(&key).await
+}
+
 pub async fn models(key: &str) -> Result<Vec<ModelInfo>, String> {
     let url = models_endpoint(&endpoint()?);
     let response = net::client(&url, Duration::from_secs(10))?
@@ -355,6 +360,19 @@ mod tests {
         // "401" stays in the words: the phone link sorts it as a key problem by it.
         assert_eq!(err, "Claude rejected the API key (401). Check it in Settings.");
         assert_eq!(status_error(500, "Claude API 500: boom"), "Claude API 500: boom");
+    }
+
+    #[test]
+    #[ignore = "Uses the configured Claude API key for model discovery and one short synthetic request"]
+    fn configured_api_lists_and_calls_sonnet_5_5() {
+        let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+        let models = runtime.block_on(available_models()).unwrap_or_else(|_| panic!("Configured Claude API model discovery failed"));
+        println!("Available Claude API models: {:?}", models.iter().map(|m| &m.id).collect::<Vec<_>>());
+        assert!(models.iter().any(|m| m.id == "claude-sonnet-5-5"), "Sonnet 5.5 is not in this account's model list");
+        let reply = runtime.block_on(complete("claude-sonnet-5-5", "Answer with the single word OK.", "This is a synthetic connection test.", 256, Duration::from_secs(60)))
+            .unwrap_or_else(|_| panic!("Sonnet 5.5 synthetic request failed"));
+        assert_eq!(reply.trim(), "OK");
+        println!("Sonnet 5.5 returned the expected synthetic reply");
     }
 
     #[test]
